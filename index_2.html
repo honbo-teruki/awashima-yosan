@@ -1,0 +1,1462 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>粟島浦村 当初予算ダッシュボード</title>
+<style>
+  :root {
+    --bg: #f6fafc;
+    --surface: #ffffff;
+    --ink: #2b3238;
+    --ink-2: #5b6770;
+    --muted: #8a97a0;
+    --grid: #e5ecf0;
+    --baseline: #c9d3d9;
+    --border: #dbe5ea;
+    --jishu: #1e97c2;          /* 自主財源マーク（ブランドシアン系・検証済） */
+    --jishu-text: #147499;
+    --jishu-soft: #e3f2f8;
+    --izon: #5c6b7a;           /* 依存財源マーク（弱調スレート） */
+    --izon-text: #4a5866;
+    --izon-soft: #eceff2;
+    --accent: #f62e36;         /* ブランド赤：経常的自力収入の1点強調のみ */
+    --accent-text: #c81e26;
+    --other-gray: #aab5be;
+    --tt-bg: #22292f;
+    --tt-ink: #f2f6f8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0e1317;
+      --surface: #171c21;
+      --ink: #e9eef2;
+      --ink-2: #aeb9c2;
+      --muted: #7e8b96;
+      --grid: #242c33;
+      --baseline: #39434c;
+      --border: #27313a;
+      --jishu: #2c9cc6;
+      --jishu-text: #6ec6e6;
+      --jishu-soft: #14303d;
+      --izon: #8895a3;
+      --izon-text: #aab6c2;
+      --izon-soft: #232b32;
+      --accent: #f8565c;
+      --accent-text: #ff9296;
+      --other-gray: #55626d;
+      --tt-bg: #0a0d10;
+      --tt-ink: #e9eef2;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e1317;
+    --surface: #171c21;
+    --ink: #e9eef2;
+    --ink-2: #aeb9c2;
+    --muted: #7e8b96;
+    --grid: #242c33;
+    --baseline: #39434c;
+    --border: #27313a;
+    --jishu: #2c9cc6;
+    --jishu-text: #6ec6e6;
+    --jishu-soft: #14303d;
+    --izon: #8895a3;
+    --izon-text: #aab6c2;
+    --izon-soft: #232b32;
+    --accent: #f8565c;
+    --accent-text: #ff9296;
+    --other-gray: #55626d;
+    --tt-bg: #0a0d10;
+    --tt-ink: #e9eef2;
+  }
+  :root[data-theme="light"] {
+    --bg: #f6fafc;
+    --surface: #ffffff;
+    --ink: #2b3238;
+    --ink-2: #5b6770;
+    --muted: #8a97a0;
+    --grid: #e5ecf0;
+    --baseline: #c9d3d9;
+    --border: #dbe5ea;
+    --jishu: #1e97c2;
+    --jishu-text: #147499;
+    --jishu-soft: #e3f2f8;
+    --izon: #5c6b7a;
+    --izon-text: #4a5866;
+    --izon-soft: #eceff2;
+    --accent: #f62e36;
+    --accent-text: #c81e26;
+    --other-gray: #aab5be;
+    --tt-bg: #22292f;
+    --tt-ink: #f2f6f8;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Meiryo", system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 36px 22px 60px; }
+
+  /* ---------- header ---------- */
+  header.page { margin-bottom: 26px; }
+  .eyebrow {
+    font-size: 11.5px; letter-spacing: .14em; color: var(--jishu-text);
+    font-weight: 600; margin-bottom: 6px;
+  }
+  h1 {
+    font-size: 24px; font-weight: 700; margin: 0 0 6px;
+    letter-spacing: .01em; text-wrap: balance;
+  }
+  .page-sub { color: var(--ink-2); font-size: 13px; max-width: 62em; }
+  .page-sub .src { color: var(--muted); }
+
+  /* ---------- year tabs ---------- */
+  .tabs-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 22px 0 8px; }
+  .tabs-label { font-size: 12px; color: var(--muted); letter-spacing: .06em; }
+  .tabs { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--surface); }
+  .tabs button {
+    appearance: none; border: none; background: transparent; color: var(--ink-2);
+    font: inherit; font-size: 13px; padding: 7px 16px; cursor: pointer;
+    border-right: 1px solid var(--border);
+  }
+  .tabs button:last-child { border-right: none; }
+  .tabs button[aria-selected="true"] {
+    background: var(--jishu); color: #fff; font-weight: 600;
+  }
+  .tabs button:focus-visible { outline: 2px solid var(--jishu-text); outline-offset: -2px; }
+  .year-note { font-size: 12px; color: var(--muted); min-height: 1.4em; margin: 2px 0 18px; }
+
+  /* ---------- cards ---------- */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px 20px;
+  }
+  .card + .card { margin-top: 0; }
+  .card-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
+  .card-title { font-size: 15px; font-weight: 700; letter-spacing: .01em; }
+  .card-sub { font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+  .chip {
+    display: inline-block; font-size: 10.5px; letter-spacing: .1em; font-weight: 600;
+    padding: 1px 8px; border-radius: 99px; border: 1px solid; line-height: 1.7;
+    vertical-align: 2px; white-space: nowrap;
+  }
+  .chip.fact { color: var(--jishu-text); border-color: var(--jishu-text); }
+  .chip.interp { color: var(--accent-text); border-color: var(--accent-text); }
+
+  section { margin-top: 22px; }
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; }
+
+  /* ---------- KPI tiles ---------- */
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(215px, 1fr)); gap: 16px; }
+  .tile { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px 12px; }
+  .tile .t-label { font-size: 12px; color: var(--ink-2); }
+  .tile .t-value { font-size: 27px; font-weight: 700; letter-spacing: .01em; line-height: 1.25; margin: 2px 0 0; }
+  .tile .t-sub { font-size: 11.5px; color: var(--muted); }
+  .tile .t-delta { font-size: 12px; color: var(--ink-2); margin-top: 2px; }
+  .tile .t-note { font-size: 10.5px; color: var(--muted); margin-top: 4px; }
+
+  /* ---------- split / stacked bars ---------- */
+  .legend { display: flex; flex-wrap: wrap; gap: 14px 22px; margin: 6px 0 10px; font-size: 12.5px; color: var(--ink-2); }
+  .legend .key { display: inline-flex; align-items: baseline; gap: 7px; }
+  .legend .sw { width: 12px; height: 12px; border-radius: 3px; align-self: center; flex: none; }
+  .legend .k-name { color: var(--ink-2); }
+  .legend .k-val { font-weight: 700; color: var(--ink); }
+  .hbar { display: flex; width: 100%; height: 22px; }
+  .hbar .seg { height: 100%; min-width: 3px; }
+  .hbar .seg + .seg { margin-left: 2px; }
+  .hbar .seg:first-child { border-radius: 0 0 0 0; }
+  .hbar .seg:last-child { border-radius: 0 4px 4px 0; }
+  .hbar .seg:focus-visible, .bar-row:focus-visible, .col:focus-visible {
+    outline: 2px solid var(--jishu-text); outline-offset: 2px;
+  }
+  .axis-note { font-size: 11px; color: var(--muted); margin-top: 8px; }
+
+  /* ---------- breakdown bar lists ---------- */
+  .bar-list { display: flex; flex-direction: column; gap: 3px; margin-top: 4px; }
+  .bar-row {
+    display: grid; grid-template-columns: 138px 1fr 150px; align-items: center;
+    gap: 10px; min-height: 27px; border-radius: 6px; padding: 0 4px; cursor: default;
+  }
+  .bar-row:hover { background: var(--jishu-soft); }
+  .bar-list.izon-list .bar-row:hover { background: var(--izon-soft); }
+  .bar-row .b-name { font-size: 12.5px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bar-row .b-track { position: relative; height: 16px; }
+  .bar-row .b-fill { position: absolute; left: 0; top: 0; height: 100%; border-radius: 0 4px 4px 0; min-width: 2px; }
+  .bar-row .b-val { font-size: 12px; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .bar-row .b-val strong { font-weight: 700; color: var(--ink); }
+  .bar-row .b-val span { color: var(--muted); }
+  .bar-baseline { border-left: 1px solid var(--baseline); }
+  @media (max-width: 560px) {
+    .bar-row { grid-template-columns: 96px 1fr 116px; gap: 6px; }
+    .bar-row .b-name { font-size: 11px; }
+    .bar-row .b-val { font-size: 11px; }
+    .col { width: 44px; }
+    .cols-x .xl { width: 44px; }
+  }
+  .list-note { font-size: 11px; color: var(--muted); margin-top: 10px; }
+
+  /* ---------- insight (解釈) ---------- */
+  .insight-grid { display: grid; grid-template-columns: 1fr 250px; gap: 26px; align-items: start; }
+  @media (max-width: 720px) { .insight-grid { grid-template-columns: 1fr; } }
+  .hero { text-align: left; border-left: 1px solid var(--border); padding-left: 24px; }
+  @media (max-width: 720px) { .hero { border-left: none; padding-left: 0; border-top: 1px solid var(--border); padding-top: 16px; } }
+  .hero .h-label { font-size: 12px; color: var(--ink-2); }
+  .hero .h-value { font-size: 52px; font-weight: 700; line-height: 1.1; letter-spacing: .01em; color: var(--accent-text); }
+  .hero .h-sub { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+  .meter { margin-top: 10px; height: 8px; border-radius: 4px; background: var(--izon-soft); position: relative; overflow: hidden; }
+  .meter .m-fill { position: absolute; left: 0; top: 0; bottom: 0; background: var(--accent); border-radius: 4px 0 0 4px; }
+  .insight-text { font-size: 13px; color: var(--ink-2); margin-top: 14px; max-width: 62em; }
+
+  /* ---------- trend charts ---------- */
+  .cols-plot { display: flex; align-items: flex-end; justify-content: space-around; height: 258px; border-bottom: 1px solid var(--baseline); position: relative; }
+  .cols-grid { position: absolute; inset: 0; }
+  .cols-grid .gl { position: absolute; left: 0; right: 0; border-top: 1px solid var(--grid); }
+  .cols-grid .gl span { position: absolute; right: 100%; margin-right: 6px; top: -0.75em; font-size: 10.5px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; width: 56px; position: relative; z-index: 1; cursor: default; }
+  .col .c-total { font-size: 11.5px; font-weight: 700; color: var(--ink); margin-bottom: 4px; font-variant-numeric: tabular-nums; }
+  .col .c-stack { width: 22px; display: flex; flex-direction: column; }
+  .col .c-izon { background: var(--izon); border-radius: 4px 4px 0 0; }
+  .col .c-jishu { background: var(--jishu); margin-top: 2px; }
+  .col.dim .c-stack { opacity: .45; }
+  .col.dim .c-total { color: var(--muted); font-weight: 400; }
+  .cols-x { display: flex; justify-content: space-around; margin-top: 6px; }
+  .cols-x .xl { width: 56px; text-align: center; font-size: 11.5px; color: var(--ink-2); }
+  .cols-x .xl small { display: block; color: var(--muted); font-size: 10px; }
+  .cols-x .xl.sel { font-weight: 700; color: var(--ink); }
+  .chart-pad { padding-left: 44px; padding-top: 10px; }
+
+  .line-wrap { position: relative; }
+  .line-wrap svg { width: 100%; height: auto; display: block; }
+  .line-wrap text { font-family: inherit; }
+
+  /* ---------- table ---------- */
+  .tbl-scroll { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+  th, td { padding: 6px 10px; border-bottom: 1px solid var(--grid); text-align: left; white-space: nowrap; }
+  th { color: var(--muted); font-weight: 600; font-size: 11.5px; letter-spacing: .04em; border-bottom: 1px solid var(--baseline); }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  tr.subtotal td { border-top: 1px solid var(--baseline); font-weight: 700; }
+  tr.total td { border-top: 1px solid var(--baseline); border-bottom: none; font-weight: 700; }
+  .tag { display: inline-block; font-size: 10.5px; font-weight: 600; padding: 0 7px; border-radius: 99px; border: 1px solid; line-height: 1.7; }
+  .tag.jishu { color: var(--jishu-text); border-color: var(--jishu-text); }
+  .tag.izon { color: var(--izon-text); border-color: var(--izon-text); }
+
+  /* ---------- notes ---------- */
+  .notes { font-size: 12px; color: var(--ink-2); }
+  .notes ul { margin: 8px 0 0; padding-left: 1.3em; }
+  .notes li { margin-bottom: 5px; }
+  .notes .yk { color: var(--accent-text); font-weight: 600; }
+
+  /* ---------- tooltip ---------- */
+  #tt {
+    position: fixed; z-index: 50; pointer-events: none; display: none;
+    background: var(--tt-bg); color: var(--tt-ink);
+    border-radius: 8px; padding: 8px 12px; font-size: 12px; line-height: 1.6;
+    max-width: 280px; box-shadow: 0 2px 10px rgba(0,0,0,.25);
+  }
+  #tt .tt-title { font-size: 11px; color: rgba(255,255,255,.62); margin-bottom: 2px; }
+  #tt .tt-row { display: flex; align-items: baseline; gap: 8px; }
+  #tt .tt-key { display: inline-block; width: 10px; height: 3px; border-radius: 2px; align-self: center; flex: none; }
+  #tt .tt-val { font-weight: 700; font-variant-numeric: tabular-nums; }
+  #tt .tt-name { color: rgba(255,255,255,.72); }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .bar-row .b-fill, .col .c-stack, .hbar .seg, .meter .m-fill { transition: opacity .15s ease; }
+  }
+  footer.page-foot { margin-top: 30px; font-size: 11.5px; color: var(--muted); }
+  /* ---------- Q&A ---------- */
+  .qa-form { display: flex; gap: 8px; margin: 10px 0 10px; }
+  .qa-form input {
+    flex: 1; min-width: 0; border: 1.5px solid var(--border); border-radius: 8px;
+    background: var(--bg); color: var(--ink); font: inherit; font-size: 14px;
+    padding: 10px 13px; outline: none;
+  }
+  .qa-form input:focus { border-color: var(--jishu); box-shadow: 0 0 0 3px var(--jishu-soft); }
+  .qa-form button {
+    appearance: none; border: none; border-radius: 8px; background: var(--jishu);
+    color: #fff; font: inherit; font-size: 13.5px; font-weight: 600;
+    padding: 10px 20px; cursor: pointer; flex: none;
+  }
+  .qa-form button:hover { filter: brightness(1.07); }
+  .qa-chips { display: flex; flex-wrap: wrap; gap: 7px; margin: 2px 0 4px; }
+  .qa-chips button {
+    appearance: none; border: 1px solid var(--border); border-radius: 99px;
+    background: var(--surface); color: var(--ink-2); font: inherit; font-size: 12px;
+    padding: 4px 12px; cursor: pointer; line-height: 1.6;
+  }
+  .qa-chips button:hover { border-color: var(--jishu); color: var(--jishu-text); background: var(--jishu-soft); }
+  .qa-answer { margin-top: 12px; display: none; }
+  .qa-answer.show { display: block; }
+  .qa-q { font-size: 12.5px; color: var(--muted); margin-bottom: 6px; }
+  .qa-block {
+    border: 1px solid var(--border); border-left: 3px solid var(--jishu);
+    border-radius: 8px; background: var(--bg); padding: 12px 14px; margin-bottom: 8px;
+  }
+  .qa-block.qa-miss { border-left-color: var(--other-gray); }
+  .qa-block.qa-interp { border-left-color: var(--accent); }
+  .qa-tag {
+    display: inline-block; font-size: 10px; letter-spacing: .1em; font-weight: 700;
+    padding: 0 7px; border-radius: 99px; border: 1px solid; line-height: 1.8;
+    margin-right: 7px; vertical-align: 1px; white-space: nowrap;
+  }
+  .qa-tag.t-actual { color: var(--jishu-text); border-color: var(--jishu-text); }
+  .qa-tag.t-budget { color: var(--izon-text); border-color: var(--izon-text); }
+  .qa-tag.t-note { color: var(--muted); border-color: var(--muted); }
+  .qa-tag.t-interp { color: var(--accent-text); border-color: var(--accent-text); }
+  .qa-main { font-size: 14px; line-height: 1.8; }
+  .qa-main strong { font-size: 16.5px; font-weight: 700; }
+  .qa-src { font-size: 11px; color: var(--muted); margin-top: 5px; line-height: 1.6; }
+  .qa-src a { color: var(--jishu-text); text-decoration: none; }
+  .qa-src a:hover { text-decoration: underline; }
+  .qa-tbl { border-collapse: collapse; font-size: 12.5px; margin-top: 6px; font-variant-numeric: tabular-nums; }
+  .qa-tbl th, .qa-tbl td { border-bottom: 1px solid var(--border); padding: 4px 14px 4px 0; text-align: right; }
+  .qa-tbl th { color: var(--muted); font-weight: 500; font-size: 11.5px; }
+  .qa-tbl th:first-child, .qa-tbl td:first-child { text-align: left; }
+  .qa-scope { font-size: 11px; color: var(--muted); margin-top: 8px; line-height: 1.7; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="page">
+    <div class="eyebrow">粟島浦村 村財政の見える化</div>
+    <h1>一般会計 当初予算ダッシュボード — 自主財源と依存財源</h1>
+    <div class="page-sub">
+      村の歳入が「自前のお金（自主財源）」と「国・県から来るお金（依存財源）」でどう構成されているかを、当初予算ベースで可視化した。
+      <span class="src">出典：粟島浦村 一般会計当初予算書（令和4〜8年度）歳入歳出予算事項別明細書「総括（歳入）」ほか。金額単位は千円。※村公式の資料ではありません。</span>
+    </div>
+  </header>
+
+  <div class="tabs-row">
+    <span class="tabs-label">年度を選択</span>
+    <div class="tabs" role="tablist" id="yearTabs"></div>
+  </div>
+  <div class="year-note" id="yearNote"></div>
+
+  <section class="card" id="qaCard">
+    <div class="card-head">
+      <span class="card-title">質問コーナー — 数字で答えるQ&amp;A</span>
+      <span class="chip fact">事実</span>
+    </div>
+    <div class="card-sub">
+      村の予算・決算・ふるさと納税について、知りたいことを質問してください。
+      このサイトに収録した公開データ（当初予算 令和4〜8年度／決算 令和4〜6年度／ふるさと納税実績 平成20〜令和7年度）の範囲で、出典付きの数字をそのまま返します。AIによる生成ではなく、収録データの検索です。
+    </div>
+    <form class="qa-form" id="qaForm">
+      <input type="text" id="qaInput" placeholder="例：令和7年度に実際に得たふるさと納税はいくら？" aria-label="質問を入力">
+      <button type="submit">質問する</button>
+    </form>
+    <div class="qa-chips" id="qaChips" aria-label="質問の例"></div>
+    <div class="qa-answer" id="qaAnswer" aria-live="polite"></div>
+  </section>
+
+  <section class="kpis" id="kpis" aria-label="主要指標"></section>
+
+  <section class="card" id="splitCard">
+    <div class="card-head">
+      <span class="card-title" id="splitTitle"></span>
+      <span class="chip fact">事実</span>
+    </div>
+    <div class="card-sub">歳入総額を自主財源（村税・使用料・繰入金など村が自ら調達する財源）と依存財源（地方交付税・国県支出金・村債など）に区分。</div>
+    <div class="legend" id="splitLegend"></div>
+    <div class="hbar bar-baseline" id="splitBar" aria-label="自主財源と依存財源の割合"></div>
+  </section>
+
+  <section class="grid-2">
+    <div class="card">
+      <div class="card-head">
+        <span class="card-title">自主財源の内訳</span>
+        <span class="chip fact">事実</span>
+      </div>
+      <div class="card-sub" id="jishuSub"></div>
+      <div class="bar-list" id="jishuList"></div>
+      <div class="list-note" id="jishuNote"></div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <span class="card-title">依存財源の内訳</span>
+        <span class="chip fact">事実</span>
+      </div>
+      <div class="card-sub" id="izonSub"></div>
+      <div class="bar-list izon-list" id="izonList"></div>
+      <div class="list-note" id="izonNote"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-head">
+      <span class="card-title">「自主財源2割」の中身を分解する</span>
+      <span class="chip interp">解釈</span>
+    </div>
+    <div class="card-sub">自主財源を性質別に組み替えた分析上の区分（予算書上の区分ではない）。「一過性」＝繰入金（基金取崩し）＋繰越金、「経常的な自力収入」＝村税＋使用料・手数料。</div>
+    <div id="insightBody"></div>
+  </section>
+
+  <section class="grid-2">
+    <div class="card">
+      <div class="card-head">
+        <span class="card-title">歳入総額と財源構成の推移（令和4〜8年度）</span>
+        <span class="chip fact">事実</span>
+      </div>
+      <div class="card-sub">当初予算ベース。柱の高さ＝歳入総額（億円）。選択中の年度を強調表示。</div>
+      <div class="legend" id="trendLegend"></div>
+      <div class="chart-pad">
+        <div class="cols-plot" id="colsPlot"></div>
+        <div class="cols-x" id="colsX"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <span class="card-title">自主財源比率の推移</span>
+        <span class="chip fact">事実</span>
+      </div>
+      <div class="card-sub">歳入総額に占める自主財源の割合（％）。令和7年度に村債・交付税の減で相対的に上昇したが、約2割の水準は変わらない。</div>
+      <div class="line-wrap" id="lineWrap"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-head">
+      <span class="card-title" id="tblTitle"></span>
+      <span class="chip fact">事実</span>
+    </div>
+    <div class="card-sub">歳入20款の当初予算額（千円）と歳入総額に対する構成比。グラフの「交付金等」はこの表の第3〜9款の合算。</div>
+    <div class="tbl-scroll" id="tblWrap"></div>
+  </section>
+
+  <section class="card notes">
+    <div class="card-head">
+      <span class="card-title">出典・注記</span>
+    </div>
+    <ul>
+      <li><strong>出典</strong>：粟島浦村「一般会計当初予算書」令和4年度【修正後】〜令和8年度。款別金額は各年度の歳入歳出予算事項別明細書「総括（歳入）」から転記。</li>
+      <li><strong>令和5年度</strong>の款別金額は令和6年度予算書「前年度予算額」欄からの転記（令和5年度予算書原本との突合は未了）。<span class="yk">要確認</span></li>
+      <li><strong>令和4年度</strong>は予算書原本がスキャン画像のため款別内訳が未取得。判明している款のみ表示し、「地方譲与税・交付金等」は差引による算出値。<span class="yk">要確認</span></li>
+      <li>自主財源＝村税・分担金及び負担金・使用料及び手数料・財産収入・寄附金・繰入金・繰越金・諸収入。依存財源＝それ以外（地方譲与税・各種交付金・地方交付税・国県支出金・村債）。</li>
+      <li>「経常的な自力収入」「一過性の財源」の区分は分析上の便宜的な区分であり、予算書上の区分ではない（〈解釈〉として表示）。</li>
+      <li>本ダッシュボードのグラフ・表は<strong>当初予算ベース</strong>。決算（実績）とは差異が生じる。</li>
+      <li><strong>質問コーナーの実績（決算）データの出典</strong>：総務省<a href="https://www.soumu.go.jp/iken/kessan_jokyo_2.html" target="_blank" rel="noopener">「市町村別決算状況調」</a>令和4〜6年度（普通会計）、および総務省<a href="https://www.soumu.go.jp/main_sosiki/jichi_zeisei/czaisei/czaisei_seido/furusato/archive/" target="_blank" rel="noopener">「ふるさと納税に関する現況調査」</a>（令和8年度実施・2026年7月31日公表、受入実績は平成20〜令和7年度）。</li>
+      <li>質問コーナーはAIによる文章生成ではなく、上記の収録データを検索して定型文で返す仕組み。収録データにない質問には回答しない。</li>
+      <li>1億円＝100,000千円で換算。表示の億円・万円は概数（四捨五入）。</li>
+    </ul>
+  </section>
+
+  <footer class="page-foot">本サイトは粟島浦村の公式サイトではありません。公開されている当初予算書に基づき個人が作成した非公式の資料です。<br>作成日：2026-07-15 ／ 最終更新：2026-08-11（質問コーナー・決算/ふるさと納税実績データ追加） ／ データ検算：各年度とも款別合計が歳入合計と一致することを確認済み。</footer>
+</div>
+
+<div id="tt" role="presentation"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---------- data（単位：千円。予算書「総括（歳入）」から転記） ---------- */
+  var KOKU = [
+    { k: 'sonzei',    n: '村税',                     g: 'jishu' },
+    { k: 'joyozei',   n: '地方譲与税',               g: 'izon'  },
+    { k: 'rishi',     n: '利子割交付金',             g: 'izon'  },
+    { k: 'haito',     n: '配当割交付金',             g: 'izon'  },
+    { k: 'kabu',      n: '株式等譲渡所得割交付金',   g: 'izon'  },
+    { k: 'hojin',     n: '法人事業税交付金',         g: 'izon'  },
+    { k: 'shohi',     n: '地方消費税交付金',         g: 'izon'  },
+    { k: 'kankyo',    n: '自動車税環境性能割交付金', g: 'izon'  },
+    { k: 'tokurei',   n: '地方特例交付金',           g: 'izon'  },
+    { k: 'kofuzei',   n: '地方交付税',               g: 'izon'  },
+    { k: 'buntan',    n: '分担金及び負担金',         g: 'jishu' },
+    { k: 'shiyoryo',  n: '使用料及び手数料',         g: 'jishu' },
+    { k: 'kokko',     n: '国庫支出金',               g: 'izon'  },
+    { k: 'ken',       n: '県支出金',                 g: 'izon'  },
+    { k: 'zaisan',    n: '財産収入',                 g: 'jishu' },
+    { k: 'kifu',      n: '寄附金',                   g: 'jishu' },
+    { k: 'kuriire',   n: '繰入金',                   g: 'jishu' },
+    { k: 'kurikoshi', n: '繰越金',                   g: 'jishu' },
+    { k: 'shoshu',    n: '諸収入',                   g: 'jishu' },
+    { k: 'sonsai',    n: '村債',                     g: 'izon'  }
+  ];
+  var KOFUKIN_KEYS = ['rishi', 'haito', 'kabu', 'hojin', 'shohi', 'kankyo', 'tokurei'];
+
+  var YEARS = [
+    {
+      id: 'R4', era: '令和4年度', ad: '2022年度', total: 1319000, partial: true,
+      vals: { sonzei: 34952, kofuzei: 686969, kokko: 118735, ken: 50798, kuriire: 44000, sonsai: 212800 },
+      jishuTotal: 233782, joyoKofukinEtc: 15916,
+      note: '令和4年度は予算書原本がスキャン画像のため、款別内訳は判明分のみ表示しています（要確認）。'
+    },
+    {
+      id: 'R5', era: '令和5年度', ad: '2023年度',
+      vals: { sonzei: 35773, joyozei: 5411, rishi: 24, haito: 87, kabu: 65, hojin: 500, shohi: 9900, kankyo: 294, tokurei: 12, kofuzei: 598543, buntan: 3398, shiyoryo: 44025, kokko: 152884, ken: 67645, zaisan: 3696, kifu: 2600, kuriire: 35000, kurikoshi: 120000, shoshu: 17643, sonsai: 282500 },
+      note: '令和5年度の款別金額は令和6年度予算書「前年度予算額」欄からの転記です。'
+    },
+    {
+      id: 'R6', era: '令和6年度', ad: '2024年度',
+      vals: { sonzei: 36256, joyozei: 5450, rishi: 20, haito: 120, kabu: 100, hojin: 800, shohi: 10000, kankyo: 300, tokurei: 900, kofuzei: 703460, buntan: 6437, shiyoryo: 48020, kokko: 202713, ken: 96980, zaisan: 3691, kifu: 3500, kuriire: 115000, kurikoshi: 80000, shoshu: 16053, sonsai: 327200 },
+      note: ''
+    },
+    {
+      id: 'R7', era: '令和7年度', ad: '2025年度',
+      vals: { sonzei: 36595, joyozei: 5640, rishi: 7, haito: 120, kabu: 120, hojin: 1000, shohi: 10000, kankyo: 450, tokurei: 20, kofuzei: 640400, buntan: 7662, shiyoryo: 45776, kokko: 176887, ken: 49594, zaisan: 5189, kifu: 4000, kuriire: 108300, kurikoshi: 80000, shoshu: 19840, sonsai: 127400 },
+      note: ''
+    },
+    {
+      id: 'R8', era: '令和8年度', ad: '2026年度',
+      vals: { sonzei: 37156, joyozei: 5692, rishi: 20, haito: 250, kabu: 300, hojin: 1200, shohi: 10500, kankyo: 550, tokurei: 70, kofuzei: 890000, buntan: 7560, shiyoryo: 59598, kokko: 83156, ken: 96894, zaisan: 4957, kifu: 2700, kuriire: 77546, kurikoshi: 100000, shoshu: 44551, sonsai: 160300 },
+      note: ''
+    }
+  ];
+
+  /* ---------- derive ---------- */
+  YEARS.forEach(function (y) {
+    if (!y.partial) {
+      var sum = 0;
+      KOKU.forEach(function (k) { sum += y.vals[k.k]; });
+      y.total = sum;
+      y.jishuTotal = KOKU.filter(function (k) { return k.g === 'jishu'; })
+        .reduce(function (a, k) { return a + y.vals[k.k]; }, 0);
+      y.joyoKofukinEtc = y.vals.joyozei + KOFUKIN_KEYS.reduce(function (a, k) { return a + y.vals[k]; }, 0);
+      y.keijo = y.vals.sonzei + y.vals.shiyoryo;
+      y.ikkasei = y.vals.kuriire + y.vals.kurikoshi;
+      y.sonota = y.jishuTotal - y.keijo - y.ikkasei;
+    }
+    y.izonTotal = y.total - y.jishuTotal;
+    y.jishuPct = y.jishuTotal / y.total * 100;
+  });
+
+  /* ---------- helpers ---------- */
+  function fmtOku(t) { return (t / 100000).toFixed(1) + '億円'; }
+  function fmtAmt(t) {
+    if (t >= 100000) return fmtOku(t);
+    return Math.round(t / 10).toLocaleString('ja-JP') + '万円';
+  }
+  function fmtSen(t) { return t.toLocaleString('ja-JP') + '千円'; }
+  function pct(v, d) { return v.toFixed(d === undefined ? 1 : d) + '%'; }
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  function css(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+
+  /* ---------- tooltip ---------- */
+  var tt = document.getElementById('tt');
+  function ttShow(title, rows, x, y) {
+    tt.replaceChildren();
+    tt.appendChild(el('div', 'tt-title', title));
+    rows.forEach(function (r) {
+      var row = el('div', 'tt-row');
+      if (r.color) {
+        var key = el('span', 'tt-key');
+        key.style.background = r.color;
+        row.appendChild(key);
+      }
+      row.appendChild(el('span', 'tt-val', r.val));
+      row.appendChild(el('span', 'tt-name', r.name));
+      tt.appendChild(row);
+    });
+    tt.style.display = 'block';
+    ttMove(x, y);
+  }
+  function ttMove(x, y) {
+    var w = tt.offsetWidth, h = tt.offsetHeight;
+    var px = x + 14, py = y + 14;
+    if (px + w > window.innerWidth - 8) px = x - w - 14;
+    if (py + h > window.innerHeight - 8) py = y - h - 14;
+    tt.style.left = Math.max(8, px) + 'px';
+    tt.style.top = Math.max(8, py) + 'px';
+  }
+  function ttHide() { tt.style.display = 'none'; }
+  function bindTT(node, getData) {
+    node.addEventListener('pointermove', function (ev) {
+      var d = getData();
+      ttShow(d.title, d.rows, ev.clientX, ev.clientY);
+    });
+    node.addEventListener('pointerleave', ttHide);
+    node.addEventListener('focus', function () {
+      var r = node.getBoundingClientRect();
+      var d = getData();
+      ttShow(d.title, d.rows, r.left + r.width / 2, r.top);
+    });
+    node.addEventListener('blur', ttHide);
+    node.setAttribute('tabindex', '0');
+  }
+
+  /* ---------- year tabs ---------- */
+  var current = 'R8';
+  var tabsHost = document.getElementById('yearTabs');
+  YEARS.forEach(function (y) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.setAttribute('role', 'tab');
+    b.textContent = y.era.replace('年度', '');
+    b.dataset.year = y.id;
+    b.addEventListener('click', function () { setYear(y.id); });
+    tabsHost.appendChild(b);
+  });
+
+  function yearById(id) { return YEARS.filter(function (y) { return y.id === id; })[0]; }
+  function prevYear(id) {
+    var i = YEARS.findIndex(function (y) { return y.id === id; });
+    return i > 0 ? YEARS[i - 1] : null;
+  }
+
+  /* ---------- KPI ---------- */
+  function renderKPI(y) {
+    var host = document.getElementById('kpis');
+    host.replaceChildren();
+    var p = prevYear(y.id);
+
+    function tile(label, value, sub, delta, note) {
+      var t = el('div', 'tile');
+      t.appendChild(el('div', 't-label', label));
+      t.appendChild(el('div', 't-value', value));
+      if (sub) t.appendChild(el('div', 't-sub', sub));
+      if (delta) t.appendChild(el('div', 't-delta', delta));
+      if (note) t.appendChild(el('div', 't-note', note));
+      host.appendChild(t);
+    }
+
+    var dTotal = p ? ((y.total - p.total) / p.total * 100) : null;
+    tile('歳入総額（当初予算）', fmtOku(y.total), fmtSen(y.total),
+      dTotal === null ? '' : (dTotal >= 0 ? '▲ +' : '▼ ') + dTotal.toFixed(1) + '%（前年度比）');
+
+    var dJishu = p ? (y.jishuPct - p.jishuPct) : null;
+    tile('自主財源比率', pct(y.jishuPct), fmtAmt(y.jishuTotal) + '（' + fmtSen(y.jishuTotal) + '）',
+      dJishu === null ? '' : (dJishu >= 0 ? '▲ +' : '▼ −') + Math.abs(dJishu).toFixed(1) + 'pt（前年度比）');
+
+    var kofu = y.vals.kofuzei, kofuPct = kofu / y.total * 100;
+    var dKofu = p ? (kofuPct - p.vals.kofuzei / p.total * 100) : null;
+    tile('地方交付税への依存度', pct(kofuPct), fmtAmt(kofu) + '（' + fmtSen(kofu) + '）',
+      dKofu === null ? '' : (dKofu >= 0 ? '▲ +' : '▼ −') + Math.abs(dKofu).toFixed(1) + 'pt（前年度比）');
+
+    if (!y.partial) {
+      var keijoPct = y.keijo / y.total * 100;
+      var dK = (p && !p.partial) ? (keijoPct - p.keijo / p.total * 100) : null;
+      tile('経常的な自力収入の比率 ※', pct(keijoPct), '村税＋使用料・手数料 ' + fmtAmt(y.keijo),
+        dK === null ? '' : (dK >= 0 ? '▲ +' : '▼ −') + Math.abs(dK).toFixed(1) + 'pt（前年度比）',
+        '※〈解釈〉分析上の区分。下段の分解カード参照');
+    } else {
+      tile('経常的な自力収入の比率 ※', '—', '款別内訳が未取得のため算出不可', '', '※〈解釈〉分析上の区分（要確認）');
+    }
+  }
+
+  /* ---------- split bar ---------- */
+  function renderSplit(y) {
+    document.getElementById('splitTitle').textContent = y.era + '：自主財源 と 依存財源 の割合';
+    var legend = document.getElementById('splitLegend');
+    legend.replaceChildren();
+    function key(color, name, val) {
+      var k = el('span', 'key');
+      var sw = el('span', 'sw'); sw.style.background = color;
+      k.appendChild(sw);
+      k.appendChild(el('span', 'k-name', name + ' '));
+      k.appendChild(el('span', 'k-val', val));
+      legend.appendChild(k);
+    }
+    key(css('--jishu'), '自主財源', pct(y.jishuPct) + '・' + fmtAmt(y.jishuTotal));
+    key(css('--izon'), '依存財源', pct(100 - y.jishuPct) + '・' + fmtAmt(y.izonTotal));
+
+    var bar = document.getElementById('splitBar');
+    bar.replaceChildren();
+    [
+      { name: '自主財源', v: y.jishuTotal, color: css('--jishu') },
+      { name: '依存財源', v: y.izonTotal, color: css('--izon') }
+    ].forEach(function (s) {
+      var seg = el('div', 'seg');
+      seg.style.flexGrow = s.v;
+      seg.style.background = s.color;
+      seg.setAttribute('role', 'img');
+      seg.setAttribute('aria-label', s.name + ' ' + pct(s.v / y.total * 100) + '（' + fmtSen(s.v) + '）');
+      bindTT(seg, function () {
+        return { title: y.era, rows: [{ color: s.color, val: fmtSen(s.v), name: s.name + '（' + pct(s.v / y.total * 100) + '）' }] };
+      });
+      bar.appendChild(seg);
+    });
+  }
+
+  /* ---------- breakdown lists ---------- */
+  function barRow(name, v, total, color, max) {
+    var row = el('div', 'bar-row');
+    row.appendChild(el('div', 'b-name', name));
+    var track = el('div', 'b-track bar-baseline');
+    var fill = el('div', 'b-fill');
+    fill.style.width = Math.max(0.4, v / max * 100) + '%';
+    fill.style.background = color;
+    track.appendChild(fill);
+    row.appendChild(track);
+    var val = el('div', 'b-val');
+    var s1 = el('strong', null, fmtAmt(v));
+    var s2 = el('span', null, '・' + pct(v / total * 100));
+    val.appendChild(s1); val.appendChild(s2);
+    row.appendChild(val);
+    row.setAttribute('aria-label', name + ' ' + fmtSen(v) + '、歳入総額の' + pct(v / total * 100));
+    bindTT(row, function () {
+      return { title: name, rows: [{ color: color, val: fmtSen(v), name: '歳入総額の' + pct(v / total * 100) }] };
+    });
+    return row;
+  }
+
+  function renderBreakdowns(y) {
+    var jishuHost = document.getElementById('jishuList');
+    var izonHost = document.getElementById('izonList');
+    jishuHost.replaceChildren(); izonHost.replaceChildren();
+    document.getElementById('jishuSub').textContent =
+      y.era + '・計 ' + fmtAmt(y.jishuTotal) + '（歳入総額の' + pct(y.jishuPct) + '）。構成比は歳入総額に対する割合。';
+    document.getElementById('izonSub').textContent =
+      y.era + '・計 ' + fmtAmt(y.izonTotal) + '（歳入総額の' + pct(100 - y.jishuPct) + '）。構成比は歳入総額に対する割合。';
+
+    var jishuItems = [], izonItems = [];
+    if (y.partial) {
+      [['繰入金', y.vals.kuriire], ['村税', y.vals.sonzei]].forEach(function (d) {
+        jishuItems.push({ n: d[0], v: d[1] });
+      });
+      izonItems = [
+        { n: '地方交付税', v: y.vals.kofuzei },
+        { n: '村債', v: y.vals.sonsai },
+        { n: '国庫支出金', v: y.vals.kokko },
+        { n: '県支出金', v: y.vals.ken },
+        { n: '地方譲与税・交付金等 ※算出値', v: y.joyoKofukinEtc }
+      ];
+    } else {
+      KOKU.filter(function (k) { return k.g === 'jishu'; }).forEach(function (k) {
+        jishuItems.push({ n: k.n, v: y.vals[k.k] });
+      });
+      izonItems = [
+        { n: '地方交付税', v: y.vals.kofuzei },
+        { n: '村債', v: y.vals.sonsai },
+        { n: '国庫支出金', v: y.vals.kokko },
+        { n: '県支出金', v: y.vals.ken },
+        { n: '交付金等（7種合算）', v: y.joyoKofukinEtc - y.vals.joyozei },
+        { n: '地方譲与税', v: y.vals.joyozei }
+      ];
+    }
+    jishuItems.sort(function (a, b) { return b.v - a.v; });
+    izonItems.sort(function (a, b) { return b.v - a.v; });
+    var jMax = jishuItems[0].v, iMax = izonItems[0].v;
+    jishuItems.forEach(function (d) { jishuHost.appendChild(barRow(d.n, d.v, y.total, css('--jishu'), jMax)); });
+    izonItems.forEach(function (d) { izonHost.appendChild(barRow(d.n, d.v, y.total, css('--izon'), iMax)); });
+
+    document.getElementById('jishuNote').textContent = y.partial
+      ? '判明分のみ表示。その他の自主財源（計' + fmtSen(y.jishuTotal - y.vals.kuriire - y.vals.sonzei) + '）の款別内訳は未取得（要確認）。'
+      : '横軸の目盛は各カード内の最大項目を100とした相対値（2つのカード間で縮尺は異なる）。';
+    document.getElementById('izonNote').textContent = y.partial
+      ? '「地方譲与税・交付金等」は歳入総額からの差引による算出値。'
+      : '';
+  }
+
+  /* ---------- insight（解釈） ---------- */
+  function renderInsight(y) {
+    var host = document.getElementById('insightBody');
+    host.replaceChildren();
+    if (y.partial) {
+      host.appendChild(el('div', 'insight-text',
+        y.era + 'は款別内訳が未取得のため、この分解は表示できません（要確認）。'));
+      return;
+    }
+    var grid = el('div', 'insight-grid');
+    var left = el('div');
+
+    var legend = el('div', 'legend');
+    var parts = [
+      { name: '経常的な自力収入（村税＋使用料・手数料）', v: y.keijo, color: css('--accent') },
+      { name: 'その他（分担金・財産収入・寄附金・諸収入）', v: y.sonota, color: css('--other-gray') },
+      { name: '一過性の財源（繰入金＝基金取崩し＋繰越金）', v: y.ikkasei, color: css('--izon') }
+    ];
+    parts.forEach(function (s) {
+      var k = el('span', 'key');
+      var sw = el('span', 'sw'); sw.style.background = s.color;
+      k.appendChild(sw);
+      k.appendChild(el('span', 'k-name', s.name + ' '));
+      k.appendChild(el('span', 'k-val', fmtAmt(s.v) + '・' + pct(s.v / y.jishuTotal * 100)));
+      legend.appendChild(k);
+    });
+    left.appendChild(legend);
+
+    var bar = el('div', 'hbar bar-baseline');
+    bar.setAttribute('aria-label', '自主財源の性質別分解');
+    parts.forEach(function (s) {
+      var seg = el('div', 'seg');
+      seg.style.flexGrow = s.v;
+      seg.style.background = s.color;
+      seg.setAttribute('role', 'img');
+      seg.setAttribute('aria-label', s.name + ' ' + fmtSen(s.v) + '、自主財源の' + pct(s.v / y.jishuTotal * 100));
+      bindTT(seg, function () {
+        return { title: y.era + 'の自主財源 ' + fmtSen(y.jishuTotal), rows: [{ color: s.color, val: fmtSen(s.v), name: s.name + '（' + pct(s.v / y.jishuTotal * 100) + '）' }] };
+      });
+      bar.appendChild(seg);
+    });
+    left.appendChild(bar);
+    left.appendChild(el('div', 'axis-note', '帯全体＝自主財源 ' + fmtSen(y.jishuTotal) + '（歳入総額の' + pct(y.jishuPct) + '）'));
+
+    left.appendChild(el('div', 'insight-text',
+      '〈解釈〉自主財源' + pct(y.jishuPct) + 'のうち' + pct(y.ikkasei / y.jishuTotal * 100) +
+      'は基金取崩しと繰越金という一過性の財源で、経常的に村が自力で稼ぐ収入（村税＋使用料・手数料）は歳入全体の約' +
+      pct(y.keijo / y.total * 100) + 'にとどまる。この区分は作成者による分析上の整理である。'));
+
+    var hero = el('div', 'hero');
+    hero.appendChild(el('div', 'h-label', '歳入総額に占める経常的な自力収入'));
+    hero.appendChild(el('div', 'h-value', pct(y.keijo / y.total * 100)));
+    hero.appendChild(el('div', 'h-sub', y.era + '：' + fmtSen(y.keijo) + ' ／ ' + fmtSen(y.total)));
+    var meter = el('div', 'meter');
+    var mf = el('div', 'm-fill');
+    mf.style.width = (y.keijo / y.total * 100) + '%';
+    meter.appendChild(mf);
+    meter.setAttribute('role', 'img');
+    meter.setAttribute('aria-label', '歳入総額を100としたとき経常的な自力収入は' + pct(y.keijo / y.total * 100));
+    hero.appendChild(meter);
+    hero.appendChild(el('div', 'h-sub', '残り' + pct(100 - y.keijo / y.total * 100) + 'は移転財源・借入・一過性財源など'));
+
+    grid.appendChild(left);
+    grid.appendChild(hero);
+    host.appendChild(grid);
+  }
+
+  /* ---------- trend: stacked columns ---------- */
+  function renderTrendCols(selectedId) {
+    var legend = document.getElementById('trendLegend');
+    legend.replaceChildren();
+    [['自主財源', css('--jishu')], ['依存財源', css('--izon')]].forEach(function (d) {
+      var k = el('span', 'key');
+      var sw = el('span', 'sw'); sw.style.background = d[1];
+      k.appendChild(sw);
+      k.appendChild(el('span', 'k-name', d[0]));
+      legend.appendChild(k);
+    });
+
+    var plot = document.getElementById('colsPlot');
+    var xr = document.getElementById('colsX');
+    plot.replaceChildren(); xr.replaceChildren();
+
+    var PLOT_H = 258, LABEL_H = 22;
+    var maxTotal = Math.max.apply(null, YEARS.map(function (y) { return y.total; }));
+
+    var gridBox = el('div', 'cols-grid');
+    [0, 5, 10, 15].forEach(function (oku) {
+      var t = oku * 100000;
+      var gl = el('div', 'gl');
+      gl.style.bottom = (t / maxTotal * (PLOT_H - LABEL_H)) + 'px';
+      gl.style.borderTopColor = oku === 0 ? 'transparent' : '';
+      var lab = el('span', null, oku + '億');
+      gl.appendChild(lab);
+      gridBox.appendChild(gl);
+    });
+    plot.appendChild(gridBox);
+
+    YEARS.forEach(function (y) {
+      var col = el('div', 'col' + (y.id === selectedId ? '' : ' dim'));
+      var h = y.total / maxTotal * (PLOT_H - LABEL_H);
+      col.appendChild(el('div', 'c-total', (y.total / 100000).toFixed(1)));
+      var stack = el('div', 'c-stack');
+      stack.style.height = h + 'px';
+      var izonSeg = el('div', 'c-izon');
+      izonSeg.style.flexGrow = y.izonTotal;
+      var jishuSeg = el('div', 'c-jishu');
+      jishuSeg.style.flexGrow = y.jishuTotal;
+      stack.appendChild(izonSeg);
+      stack.appendChild(jishuSeg);
+      col.appendChild(stack);
+      col.setAttribute('aria-label', y.era + ' 歳入総額' + fmtOku(y.total) + '、自主財源' + fmtAmt(y.jishuTotal) + '、依存財源' + fmtAmt(y.izonTotal));
+      bindTT(col, function () {
+        return {
+          title: y.era + '（' + y.ad + '）当初予算',
+          rows: [
+            { val: fmtSen(y.total), name: '歳入総額' },
+            { color: css('--jishu'), val: fmtSen(y.jishuTotal), name: '自主財源（' + pct(y.jishuPct) + '）' },
+            { color: css('--izon'), val: fmtSen(y.izonTotal), name: '依存財源（' + pct(100 - y.jishuPct) + '）' }
+          ]
+        };
+      });
+      col.addEventListener('click', function () { setYear(y.id); });
+      col.style.cursor = 'pointer';
+      plot.appendChild(col);
+
+      var xl = el('div', 'xl' + (y.id === selectedId ? ' sel' : ''));
+      xl.appendChild(document.createTextNode(y.era.replace('年度', '')));
+      var small = el('small', null, y.ad);
+      xl.appendChild(small);
+      xr.appendChild(xl);
+    });
+  }
+
+  /* ---------- trend: ratio line ---------- */
+  function renderTrendLine(selectedId) {
+    var host = document.getElementById('lineWrap');
+    host.replaceChildren();
+    var W = 600, H = 240, L = 44, R = 20, T = 26, B = 34;
+    var innerW = W - L - R, innerH = H - T - B;
+    var yMax = 30;
+    var svgNS = 'http://www.w3.org/2000/svg';
+    var svg = document.createElementNS(svgNS, 'svg');
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    svg.setAttribute('role', 'img');
+    svg.setAttribute('aria-label', '自主財源比率の推移。' + YEARS.map(function (y) { return y.era + ' ' + pct(y.jishuPct); }).join('、'));
+
+    function X(i) { return L + innerW * i / (YEARS.length - 1); }
+    function Y(v) { return T + innerH * (1 - v / yMax); }
+
+    [0, 10, 20, 30].forEach(function (v) {
+      var ln = document.createElementNS(svgNS, 'line');
+      ln.setAttribute('x1', L); ln.setAttribute('x2', W - R);
+      ln.setAttribute('y1', Y(v)); ln.setAttribute('y2', Y(v));
+      ln.setAttribute('stroke', v === 0 ? css('--baseline') : css('--grid'));
+      ln.setAttribute('stroke-width', '1');
+      svg.appendChild(ln);
+      var tx = document.createElementNS(svgNS, 'text');
+      tx.setAttribute('x', L - 8); tx.setAttribute('y', Y(v) + 3.5);
+      tx.setAttribute('text-anchor', 'end');
+      tx.setAttribute('font-size', '10.5');
+      tx.setAttribute('fill', css('--muted'));
+      tx.textContent = v + '%';
+      svg.appendChild(tx);
+    });
+
+    var path = document.createElementNS(svgNS, 'path');
+    var d = YEARS.map(function (y, i) { return (i === 0 ? 'M' : 'L') + X(i) + ' ' + Y(y.jishuPct); }).join(' ');
+    path.setAttribute('d', d);
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke', css('--jishu'));
+    path.setAttribute('stroke-width', '2');
+    path.setAttribute('stroke-linejoin', 'round');
+    path.setAttribute('stroke-linecap', 'round');
+    svg.appendChild(path);
+
+    var labelIdx = { 0: true, 3: true, 4: true };
+    YEARS.forEach(function (y, i) {
+      var c = document.createElementNS(svgNS, 'circle');
+      c.setAttribute('cx', X(i)); c.setAttribute('cy', Y(y.jishuPct));
+      c.setAttribute('r', y.id === selectedId ? 6 : 4.5);
+      c.setAttribute('fill', css('--jishu'));
+      c.setAttribute('stroke', css('--surface'));
+      c.setAttribute('stroke-width', '2');
+      svg.appendChild(c);
+      if (labelIdx[i]) {
+        var tx = document.createElementNS(svgNS, 'text');
+        tx.setAttribute('x', i === 0 ? X(i) + 9 : X(i));
+        tx.setAttribute('y', Y(y.jishuPct) - 11);
+        tx.setAttribute('text-anchor', i === 0 ? 'start' : 'middle');
+        tx.setAttribute('font-size', '11.5');
+        tx.setAttribute('font-weight', '700');
+        tx.setAttribute('fill', css('--ink'));
+        tx.textContent = y.jishuPct.toFixed(1);
+        svg.appendChild(tx);
+      }
+      var xt = document.createElementNS(svgNS, 'text');
+      xt.setAttribute('x', X(i)); xt.setAttribute('y', H - 12);
+      xt.setAttribute('text-anchor', 'middle');
+      xt.setAttribute('font-size', '11');
+      xt.setAttribute('fill', y.id === selectedId ? css('--ink') : css('--muted'));
+      if (y.id === selectedId) xt.setAttribute('font-weight', '700');
+      xt.textContent = y.era.replace('年度', '');
+      svg.appendChild(xt);
+    });
+
+    var cross = document.createElementNS(svgNS, 'line');
+    cross.setAttribute('y1', T); cross.setAttribute('y2', T + innerH);
+    cross.setAttribute('stroke', css('--baseline'));
+    cross.setAttribute('stroke-width', '1');
+    cross.setAttribute('visibility', 'hidden');
+    svg.appendChild(cross);
+
+    var hit = document.createElementNS(svgNS, 'rect');
+    hit.setAttribute('x', L); hit.setAttribute('y', T);
+    hit.setAttribute('width', innerW); hit.setAttribute('height', innerH);
+    hit.setAttribute('fill', 'transparent');
+    svg.appendChild(hit);
+
+    function nearest(ev) {
+      var r = svg.getBoundingClientRect();
+      var mx = (ev.clientX - r.left) / r.width * W;
+      var best = 0, bd = Infinity;
+      YEARS.forEach(function (y, i) {
+        var dd = Math.abs(X(i) - mx);
+        if (dd < bd) { bd = dd; best = i; }
+      });
+      return best;
+    }
+    hit.addEventListener('pointermove', function (ev) {
+      var i = nearest(ev);
+      cross.setAttribute('x1', X(i)); cross.setAttribute('x2', X(i));
+      cross.setAttribute('visibility', 'visible');
+      var y = YEARS[i];
+      ttShow(y.era + '（' + y.ad + '）', [
+        { color: css('--jishu'), val: pct(y.jishuPct), name: '自主財源比率' },
+        { val: fmtSen(y.jishuTotal), name: '自主財源額' },
+        { val: fmtSen(y.total), name: '歳入総額' }
+      ], ev.clientX, ev.clientY);
+    });
+    hit.addEventListener('pointerleave', function () {
+      cross.setAttribute('visibility', 'hidden');
+      ttHide();
+    });
+
+    host.appendChild(svg);
+  }
+
+  /* ---------- table ---------- */
+  function renderTable(y) {
+    document.getElementById('tblTitle').textContent = y.era + '：歳入内訳の一覧（第1〜20款）';
+    var wrap = document.getElementById('tblWrap');
+    wrap.replaceChildren();
+    var table = el('table');
+    var thead = el('thead');
+    var hr = el('tr');
+    [['款', ''], ['科目', ''], ['区分', ''], ['予算額（千円）', 'num'], ['構成比', 'num']].forEach(function (h) {
+      var th = el('th', h[1] || null, h[0]);
+      hr.appendChild(th);
+    });
+    thead.appendChild(hr);
+    table.appendChild(thead);
+    var tbody = el('tbody');
+
+    function row(no, name, group, v, cls) {
+      var tr = el('tr', cls || null);
+      tr.appendChild(el('td', null, no));
+      tr.appendChild(el('td', null, name));
+      var tdTag = el('td');
+      if (group) {
+        var tag = el('span', 'tag ' + group, group === 'jishu' ? '自主' : '依存');
+        tdTag.appendChild(tag);
+      }
+      tr.appendChild(tdTag);
+      tr.appendChild(el('td', 'num', v === null ? '—' : v.toLocaleString('ja-JP')));
+      tr.appendChild(el('td', 'num', v === null ? '—' : pct(v / y.total * 100)));
+      tbody.appendChild(tr);
+    }
+
+    if (y.partial) {
+      var known = [
+        ['1', '村税', 'jishu', y.vals.sonzei],
+        ['10', '地方交付税', 'izon', y.vals.kofuzei],
+        ['13', '国庫支出金', 'izon', y.vals.kokko],
+        ['14', '県支出金', 'izon', y.vals.ken],
+        ['17', '繰入金', 'jishu', y.vals.kuriire],
+        ['20', '村債', 'izon', y.vals.sonsai],
+        ['—', '地方譲与税・交付金等（算出値）', 'izon', y.joyoKofukinEtc],
+        ['—', 'その他の自主財源（款別未取得）', 'jishu', y.jishuTotal - y.vals.sonzei - y.vals.kuriire]
+      ];
+      known.forEach(function (r) { row(r[0], r[1], r[2], r[3]); });
+    } else {
+      KOKU.forEach(function (k, i) {
+        row(String(i + 1), k.n, k.g, y.vals[k.k]);
+      });
+    }
+    row('', '自主財源 計', 'jishu', y.jishuTotal, 'subtotal');
+    row('', '依存財源 計', 'izon', y.izonTotal, 'subtotal');
+    row('', '歳入合計', null, y.total, 'total');
+
+    table.appendChild(tbody);
+    wrap.appendChild(table);
+  }
+
+  /* ---------- master render ---------- */
+  function setYear(id) {
+    current = id;
+    var y = yearById(id);
+    Array.prototype.forEach.call(tabsHost.children, function (b) {
+      b.setAttribute('aria-selected', b.dataset.year === id ? 'true' : 'false');
+    });
+    document.getElementById('yearNote').textContent = y.note || '';
+    renderKPI(y);
+    renderSplit(y);
+    renderBreakdowns(y);
+    renderInsight(y);
+    renderTrendCols(id);
+    renderTrendLine(id);
+    renderTable(y);
+  }
+
+  setYear(current);
+
+  /* Q&A機能へのデータ公開（読み取り専用の参照） */
+  window.AWA_DATA = { KOKU: KOKU, YEARS: YEARS, fmtAmt: fmtAmt, fmtSen: fmtSen };
+
+  /* テーマ切替（ライト/ダーク）でCSS変数由来の色を再描画 */
+  var mq = window.matchMedia('(prefers-color-scheme: dark)');
+  if (mq.addEventListener) mq.addEventListener('change', function () { setYear(current); });
+  new MutationObserver(function () { setYear(current); })
+    .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+})();
+</script>
+
+<script>
+/* ============================================================
+   質問コーナー（ルールベースQ&A）
+   ・AI生成ではなく、下記に収録した公開データの検索・整形のみを行う
+   ・回答は必ず「事実（出典付き）」として返し、評価・解釈は行わない
+   ============================================================ */
+(function () {
+  'use strict';
+
+  /* ---------- 出典 ---------- */
+  var SRC = {
+    furusato: { label: '総務省「ふるさと納税に関する現況調査」（令和8年度実施・2026年7月31日公表）', url: 'https://www.soumu.go.jp/main_sosiki/jichi_zeisei/czaisei/czaisei_seido/furusato/archive/' },
+    kessan:   { label: '総務省「市町村別決算状況調」（令和4〜6年度・普通会計）', url: 'https://www.soumu.go.jp/iken/kessan_jokyo_2.html' },
+    yosan:    { label: '粟島浦村「一般会計当初予算書」（令和4〜8年度）※本サイト収録データ', url: null }
+  };
+
+  /* ---------- ふるさと納税 受入実績（単位：千円・件） ---------- */
+  var FURU = [
+    { id: 'H20', y: '平成20年度', a: 140,      n: 4 },
+    { id: 'H21', y: '平成21年度', a: 2172,     n: 9 },
+    { id: 'H22', y: '平成22年度', a: 2974,     n: 10 },
+    { id: 'H23', y: '平成23年度', a: 2810,     n: 12 },
+    { id: 'H24', y: '平成24年度', a: 2800,     n: 10 },
+    { id: 'H25', y: '平成25年度', a: 240,      n: 5 },
+    { id: 'H26', y: '平成26年度', a: 315,      n: 9 },
+    { id: 'H27', y: '平成27年度', a: 1290,     n: 17 },
+    { id: 'H28', y: '平成28年度', a: 2205,     n: 17 },
+    { id: 'H29', y: '平成29年度', a: 2930,     n: 19 },
+    { id: 'H30', y: '平成30年度', a: 2033,     n: 69 },
+    { id: 'R1',  y: '令和元年度', a: 1797.6,   n: 32 },
+    { id: 'R2',  y: '令和2年度',  a: 18681.32, n: 605 },
+    { id: 'R3',  y: '令和3年度',  a: 3837,     n: 95 },
+    { id: 'R4',  y: '令和4年度',  a: 3137,     n: 93 },
+    { id: 'R5',  y: '令和5年度',  a: 4257,     n: 119 },
+    { id: 'R6',  y: '令和6年度',  a: 1085,     n: 54 },
+    { id: 'R7',  y: '令和7年度',  a: 1216.57,  n: 71 }
+  ];
+
+  /* ---------- 決算（普通会計・単位：千円） ---------- */
+  var KESSAN = {
+    R4: { era: '令和4年度', saiNyu: 1678707, saiShutsu: 1331814, jisshitsu: 346893, keijo: '79.9', zaiseiryoku: '0.10', koSaihi: '5.3', chihosaiZan: 1113289, kikin: 608996, kikinFchou: 355800, jinko: 329, jinkoDate: '令和5年1月1日' },
+    R5: { era: '令和5年度', saiNyu: 1789015, saiShutsu: 1431901, jisshitsu: 348008, keijo: '83.9', zaiseiryoku: '0.09', koSaihi: '5.3', chihosaiZan: 1204099, kikin: 579976, kikinFchou: 325800, jinko: 323, jinkoDate: '令和6年1月1日' },
+    R6: { era: '令和6年度', saiNyu: 1788098, saiShutsu: 1525923, jisshitsu: 252555, keijo: '97.8', zaiseiryoku: '0.09', koSaihi: '6.0', chihosaiZan: 1404025, kikin: 568181, kikinFchou: 325800, jinko: 312, jinkoDate: '令和7年1月1日' }
+  };
+  /* 令和6年度 歳入決算の内訳（単位：千円） */
+  var R6IN = {
+    sonzei: 39219, sonzeiKojin: 11719, sonzeiHojin: 2400, sonzeiKotei: 22077, sonzeiTabako: 1671,
+    joyozei: 5591, kofuzei: 759168, kofuzeiFutsu: 486151, kofuzeiTokubetsu: 273017,
+    buntan: 7562, shiyoryo: 38088, tesuryo: 2084, kokko: 115512, ken: 87910,
+    zaisan: 8174, kifu: 1085, kifuFurusato: 1085, kuriire: 15176, kurikoshi: 357114,
+    shoshu: 37052, sonsai: 300800
+  };
+  var R6KIKIN = { fchou: 325800, gensai: 4157, tokutei: 238224 };
+
+  /* ---------- 整形 ---------- */
+  function senStr(s) { return Math.round(s).toLocaleString('ja-JP') + '千円'; }
+  function amt(s) {
+    if (s >= 100000) return '<strong>' + (s / 100000).toFixed(1) + '億円</strong>（' + senStr(s) + '）';
+    if (s >= 1000)   return '<strong>' + Math.round(s / 10).toLocaleString('ja-JP') + '万円</strong>（' + senStr(s) + '）';
+    return '<strong>' + Math.round(s * 1000).toLocaleString('ja-JP') + '円</strong>';
+  }
+  function furuAmt(s) { /* ふるさと納税は円単位まで表示 */
+    var yen = Math.round(s * 1000);
+    var man = (yen / 10000).toLocaleString('ja-JP', { maximumFractionDigits: 1 });
+    return '<strong>' + man + '万円</strong>（' + yen.toLocaleString('ja-JP') + '円）';
+  }
+
+  /* ---------- 入力の正規化・年度抽出 ---------- */
+  function normalize(q) {
+    q = q.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); });
+    var kan = { '元': 1, '一': 1, '二': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8, '九': 9, '十': 10 };
+    q = q.replace(/(令和|平成)([元一二三四五六七八九十]+)/g, function (m, era, num) {
+      var v = 0;
+      if (num === '十') v = 10;
+      else if (num.length === 2 && num[0] === '十') v = 10 + kan[num[1]];
+      else if (num.length === 2 && num[1] === '十') v = kan[num[0]] * 10;
+      else if (num.length === 3 && num[1] === '十') v = kan[num[0]] * 10 + kan[num[2]];
+      else v = kan[num] || 0;
+      return era + v;
+    });
+    return q.toLowerCase();
+  }
+  function parseYear(q) {
+    var m;
+    if ((m = q.match(/令和\s*(\d+)/)))  return { era: 'R', n: +m[1] };
+    if ((m = q.match(/平成\s*(\d+)/)))  return { era: 'H', n: +m[1] };
+    if ((m = q.match(/\br\s*(\d+)/)))   return { era: 'R', n: +m[1] };
+    if ((m = q.match(/\bh\s*(\d+)/)))   return { era: 'H', n: +m[1] };
+    if ((m = q.match(/(20\d\d)\s*年/))) { var y = +m[1]; return y >= 2019 ? { era: 'R', n: y - 2018 } : { era: 'H', n: y - 1988 }; }
+    if (/今年度/.test(q)) return { era: 'R', n: 8 };
+    if (/昨年度|去年/.test(q)) return { era: 'R', n: 7 };
+    if ((m = q.match(/(\d+)\s*年度/))) { var n = +m[1]; if (n >= 1 && n <= 10) return { era: 'R', n: n }; }
+    return null;
+  }
+  function yearId(y) { return y ? y.era + y.n : null; }
+  function eraLabel(y) { return y.era === 'R' ? (y.n === 1 ? '令和元年度' : '令和' + y.n + '年度') : '平成' + y.n + '年度'; }
+
+  /* ---------- 回答ブロック ---------- */
+  var TAGS = { actual: ['t-actual', '実績（決算・公表値）'], budget: ['t-budget', '当初予算'], note: ['t-note', '補足（事実）'], interp: ['t-interp', '解釈に関わる注意'], miss: ['t-note', 'データ範囲外'] };
+  function block(kind, html, src, extraCls) {
+    var t = TAGS[kind];
+    var s = '';
+    if (src) {
+      s = '<div class="qa-src">出典：' + (src.url ? '<a href="' + src.url + '" target="_blank" rel="noopener">' + src.label + '</a>' : src.label) + '</div>';
+    }
+    return '<div class="qa-block' + (kind === 'miss' ? ' qa-miss' : '') + (kind === 'interp' ? ' qa-interp' : '') + (extraCls ? ' ' + extraCls : '') + '">' +
+      '<span class="qa-tag ' + t[0] + '">' + t[1] + '</span>' +
+      '<span class="qa-main">' + html + '</span>' + s + '</div>';
+  }
+  function table(head, rows) {
+    var h = '<table class="qa-tbl"><tr>' + head.map(function (c) { return '<th>' + c + '</th>'; }).join('') + '</tr>';
+    h += rows.map(function (r) { return '<tr>' + r.map(function (c) { return '<td>' + c + '</td>'; }).join('') + '</tr>'; }).join('');
+    return h + '</table>';
+  }
+
+  var D = window.AWA_DATA;
+  function budgetYear(y) {
+    if (!y || y.era !== 'R') return null;
+    return D.YEARS.filter(function (b) { return b.id === 'R' + y.n; })[0] || null;
+  }
+
+  /* ---------- トピック別回答 ---------- */
+
+  function ansFurusato(q, y, series) {
+    var out = [];
+    if (series || !y) {
+      var rows = FURU.slice(-8).map(function (f) { return [f.y, furuAmt(f.a), f.n + '件']; });
+      out.push(block('actual', '粟島浦村のふるさと納税受入実績（直近8年度）：' + table(['年度', '受入額', '件数'], rows), SRC.furusato));
+      out.push(block('note', '平成20年度からの全実績を収録しています（「令和2年度のふるさと納税は？」のように年度を指定して質問できます）。令和2年度は受入額1,868万円（605件）と、収録期間中で最も多い年度でした。', null));
+      return out;
+    }
+    var id = yearId(y);
+    var f = FURU.filter(function (x) { return x.id === id; })[0];
+    if (!f) {
+      if (id === 'R8') {
+        out.push(block('miss', '令和8年度（今年度）は年度の途中のため、受入実績はまだ公表されていません。実績が公表されているのは令和7年度分までです（令和7年度：' + furuAmt(FURU[FURU.length - 1].a) + '・71件）。', SRC.furusato));
+      } else {
+        out.push(block('miss', eraLabel(y) + 'のふるさと納税実績は収録データ（平成20〜令和7年度）にありません。', null));
+      }
+      return out;
+    }
+    out.push(block('actual', f.y + 'に粟島浦村が実際に受け入れたふるさと納税は ' + furuAmt(f.a) + '・<strong>' + f.n + '件</strong> です。', SRC.furusato));
+    var b = budgetYear(y);
+    if (b && b.vals && b.vals.kifu != null) {
+      out.push(block('note', '参考：同年度の当初予算書の「寄附金」款は ' + amt(b.vals.kifu) + '。予算の寄附金款はふるさと納税以外の寄附も含む科目で、ふるさと納税の実績額とは集計が異なります。', SRC.yosan));
+    }
+    return out;
+  }
+
+  function ansTotal(q, y, series, mode) {
+    var out = [];
+    if (series) {
+      var rows = D.YEARS.map(function (b) {
+        var k = KESSAN[b.id];
+        return [b.era, amt(b.total), k ? amt(k.saiNyu) : '未公表'];
+      });
+      out.push(block('actual', '歳入の予算と決算の推移：' + table(['年度', '当初予算（歳入）', '決算（歳入総額）'], rows), SRC.kessan));
+      out.push(block('note', '当初予算は年度当初の見込み、決算は実際の収入額です。決算は令和6年度分まで公表されています。', null));
+      return out;
+    }
+    y = y || { era: 'R', n: 8 };
+    var b = budgetYear(y), k = KESSAN[yearId(y)];
+    if (mode !== 'actual' && b) out.push(block('budget', b.era + 'の一般会計当初予算（歳入総額）は ' + amt(b.total) + ' です。', SRC.yosan));
+    if (mode !== 'budget') {
+      if (k) out.push(block('actual', k.era + 'の決算では、歳入総額 ' + amt(k.saiNyu) + '・歳出総額 ' + amt(k.saiShutsu) + ' でした。', SRC.kessan));
+      else if (mode === 'actual') out.push(block('miss', eraLabel(y) + 'の決算はまだ公表されていません（総務省の市町村別決算状況調は令和6年度分まで公表・2026年8月時点）。', SRC.kessan));
+    }
+    if (!b && !k && mode === 'both') out.push(block('miss', eraLabel(y) + 'のデータは収録範囲（予算：令和4〜8年度、決算：令和4〜6年度）にありません。', null));
+    return out;
+  }
+
+  function ansSaishutsu(q, y, series) {
+    var out = [];
+    if (series || !y) {
+      var rows = ['R4', 'R5', 'R6'].map(function (id) { var k = KESSAN[id]; return [k.era, amt(k.saiShutsu)]; });
+      out.push(block('actual', '歳出決算総額の推移：' + table(['年度', '歳出総額（決算）'], rows), SRC.kessan));
+    } else {
+      var k = KESSAN[yearId(y)];
+      if (k) out.push(block('actual', k.era + 'の歳出決算総額は ' + amt(k.saiShutsu) + ' です。', SRC.kessan));
+      else out.push(block('miss', eraLabel(y) + 'の歳出決算は未公表または収録範囲外です（公表済みは令和4〜6年度）。', SRC.kessan));
+    }
+    out.push(block('note', '本サイトのダッシュボード本体は歳入（当初予算）を対象としています。歳出の款別内訳は収録していません。', null));
+    return out;
+  }
+
+  function ansDebt(q, y, series) {
+    var out = [];
+    var rows = ['R4', 'R5', 'R6'].map(function (id) { var k = KESSAN[id]; return [k.era + '末', amt(k.chihosaiZan)]; });
+    if (y && KESSAN[yearId(y)]) {
+      var k = KESSAN[yearId(y)];
+      out.push(block('actual', k.era + '末時点の地方債現在高（村の借入金残高）は ' + amt(k.chihosaiZan) + ' です。', SRC.kessan));
+    } else {
+      out.push(block('actual', '粟島浦村の地方債現在高（借入金残高・普通会計）：' + table(['時点', '残高'], rows), SRC.kessan));
+    }
+    var b = budgetYear(y || { era: 'R', n: 8 });
+    if (b && b.vals && b.vals.sonsai != null) {
+      out.push(block('note', '参考：' + b.era + '当初予算の「村債」' + amt(b.vals.sonsai) + ' は、その年度に新たに借り入れる予定額（発行額）であり、残高とは別の数字です。', SRC.yosan));
+    }
+    return out;
+  }
+
+  function ansKikin(q, y) {
+    var out = [];
+    var k = (y && KESSAN[yearId(y)]) || KESSAN.R6;
+    out.push(block('actual', k.era + '末時点の基金残高（村の積立金）は ' + amt(k.kikin) + ' です。うち財政調整基金は ' + amt(k.kikinFchou) + '。', SRC.kessan));
+    if (k === KESSAN.R6) {
+      out.push(block('note', '令和6年度末の内訳：財政調整基金 ' + amt(R6KIKIN.fchou) + '、減債基金 ' + amt(R6KIKIN.gensai) + '、その他特定目的基金 ' + amt(R6KIKIN.tokutei) + '。', SRC.kessan));
+    }
+    var rows = ['R4', 'R5', 'R6'].map(function (id) { var kk = KESSAN[id]; return [kk.era + '末', amt(kk.kikin)]; });
+    out.push(block('actual', '基金残高の推移：' + table(['時点', '残高'], rows), SRC.kessan));
+    return out;
+  }
+
+  function ansJishu(q, y) {
+    var out = [];
+    var b = budgetYear(y || { era: 'R', n: 8 });
+    if (!b) { out.push(block('miss', '自主財源比率の収録は当初予算ベース（令和4〜8年度）です。', null)); return out; }
+    out.push(block('budget', b.era + '当初予算の自主財源は ' + amt(b.jishuTotal) + ' で、歳入総額の <strong>' + b.jishuPct.toFixed(1) + '%</strong>。残る ' + amt(b.izonTotal) + '（' + (100 - b.jishuPct).toFixed(1) + '%）が地方交付税・国県支出金・村債などの依存財源です。', SRC.yosan));
+    var rows = D.YEARS.map(function (bb) { return [bb.era, bb.jishuPct.toFixed(1) + '%']; });
+    out.push(block('budget', '自主財源比率の推移（当初予算）：' + table(['年度', '自主財源比率'], rows), SRC.yosan));
+    return out;
+  }
+
+  function metricAns(name, key, unit, y, noteHtml) {
+    var out = [];
+    if (y && KESSAN[yearId(y)]) {
+      var k = KESSAN[yearId(y)];
+      out.push(block('actual', k.era + 'の' + name + 'は <strong>' + k[key] + unit + '</strong> です。', SRC.kessan));
+    }
+    var rows = ['R4', 'R5', 'R6'].map(function (id) { var k = KESSAN[id]; return [k.era, k[key] + unit]; });
+    out.push(block('actual', name + 'の推移：' + table(['年度', name], rows), SRC.kessan));
+    if (noteHtml) out.push(block('note', noteHtml, null));
+    return out;
+  }
+
+  function ansHealth() {
+    var k = KESSAN.R6;
+    var out = [];
+    out.push(block('interp', '「健全かどうか」の評価は解釈にわたるため、ここでは公表されている指標の事実のみを示します。', null));
+    out.push(block('actual',
+      '令和6年度決算の主な財政指標：' + table(['指標', '値'], [
+        ['財政力指数', String(k.zaiseiryoku)],
+        ['経常収支比率', k.keijo + '%'],
+        ['実質公債費比率', k.koSaihi + '%'],
+        ['実質収支', amt(k.jisshitsu)],
+        ['地方債現在高', amt(k.chihosaiZan)],
+        ['基金残高', amt(k.kikin)]
+      ]), SRC.kessan));
+    out.push(block('note', '実質赤字比率・連結実質赤字比率・将来負担比率は「−」（該当なし）として公表されています。経常収支比率は令和4年度79.9%→令和5年度83.9%→令和6年度97.8%と推移しています。', SRC.kessan));
+    return out;
+  }
+
+  function ansJinko(q, y) {
+    var rows = ['R4', 'R5', 'R6'].map(function (id) { var k = KESSAN[id]; return [k.jinkoDate, k.jinko.toLocaleString('ja-JP') + '人']; });
+    return [block('actual', '粟島浦村の住民基本台帳登載人口：' + table(['時点', '人口'], rows) , SRC.kessan),
+            block('note', '最新の公表値は令和7年1月1日現在で312人（うち日本人309人）です。', SRC.kessan)];
+  }
+
+  /* 款（歳入科目）の汎用回答 */
+  var R6MAP = { sonzei: R6IN.sonzei, joyozei: R6IN.joyozei, kofuzei: R6IN.kofuzei, buntan: R6IN.buntan, shiyoryo: R6IN.shiyoryo + R6IN.tesuryo, kokko: R6IN.kokko, ken: R6IN.ken, zaisan: R6IN.zaisan, kifu: R6IN.kifu, kuriire: R6IN.kuriire, kurikoshi: R6IN.kurikoshi, shoshu: R6IN.shoshu, sonsai: R6IN.sonsai };
+  function ansKoku(key, name, q, y, series, mode) {
+    var out = [];
+    if (series) {
+      var rows = D.YEARS.map(function (b) { return [b.era, b.vals && b.vals[key] != null ? amt(b.vals[key]) : '未収録']; });
+      out.push(block('budget', name + 'の当初予算額の推移：' + table(['年度', name + '（当初予算）'], rows), SRC.yosan));
+    } else {
+      var b = budgetYear(y || { era: 'R', n: 8 });
+      if (mode !== 'actual' && b) {
+        if (b.vals && b.vals[key] != null) out.push(block('budget', b.era + '当初予算の「' + name + '」は ' + amt(b.vals[key]) + ' です。', SRC.yosan));
+        else out.push(block('miss', b.era + 'は予算書原本がスキャン画像のため、この款の金額は未収録です（判明分のみ収録）。', SRC.yosan));
+      }
+    }
+    if (mode !== 'budget' && R6MAP[key] != null) {
+      out.push(block('actual', '決算（実績）では、令和6年度の' + name + 'は ' + amt(R6MAP[key]) + ' でした（公表済みの最新決算）。', SRC.kessan));
+    }
+    if (key === 'kofuzei') {
+      out.push(block('note', '令和6年度決算の地方交付税の内訳：普通交付税 ' + amt(R6IN.kofuzeiFutsu) + '、特別交付税 ' + amt(R6IN.kofuzeiTokubetsu) + '。', SRC.kessan));
+    }
+    if (key === 'sonzei') {
+      out.push(block('note', '令和6年度決算の村税の内訳：個人村民税 ' + amt(R6IN.sonzeiKojin) + '、法人村民税 ' + amt(R6IN.sonzeiHojin) + '、固定資産税 ' + amt(R6IN.sonzeiKotei) + '、たばこ税 ' + amt(R6IN.sonzeiTabako) + '。', SRC.kessan));
+    }
+    return out;
+  }
+
+  /* ---------- ルーター ---------- */
+  var KOKU_SYN = [
+    ['sonzei',   /村税|税収|村民税|住民税|固定資産税|たばこ税|地方税/, '村税'],
+    ['kofuzei',  /交付税/, '地方交付税'],
+    ['kokko',    /国庫|国の補助|国からの補助|国から/, '国庫支出金'],
+    ['ken',      /県支出金|県の補助|県から/, '県支出金'],
+    ['joyozei',  /譲与税/, '地方譲与税'],
+    ['shiyoryo', /使用料|手数料/, '使用料及び手数料'],
+    ['buntan',   /分担金|負担金/, '分担金及び負担金'],
+    ['zaisan',   /財産収入/, '財産収入'],
+    ['kifu',     /寄附|寄付/, '寄附金'],
+    ['kuriire',  /繰入/, '繰入金'],
+    ['kurikoshi',/繰越/, '繰越金'],
+    ['shoshu',   /諸収入/, '諸収入'],
+    ['sonsai',   /村債|起債|地方債/, '村債']
+  ];
+
+  function answer(raw) {
+    var q = normalize(raw);
+    var y = parseYear(q);
+    var series = /推移|変化|各年|毎年|年ごと|履歴|これまで|過去|遷移/.test(q);
+    var mode = /実際|実績|決算|入った|得た|受け入|受入|もらった|集ま/.test(q) ? 'actual'
+             : /当初予算|予算|見込/.test(q) ? 'budget' : 'both';
+
+    if (/ふるさと/.test(q)) return ansFurusato(q, y, series);
+    if (/健全|大丈夫|やばい|危な|破綻/.test(q)) return ansHealth();
+    if (/(借金|負債|残高|借入)/.test(q) && !/基金|貯金/.test(q)) return ansDebt(q, y, series);
+    if (/基金|貯金|積立/.test(q)) return ansKikin(q, y);
+    if (/自主財源|依存財源|自立/.test(q)) return ansJishu(q, y);
+    if (/財政力/.test(q)) return metricAns('財政力指数', 'zaiseiryoku', '', y, '財政力指数は、基準財政収入額を基準財政需要額で割った値の3か年平均。「1」に近いほど、自前の税収等で標準的な行政需要を賄える度合いが高いことを示します。');
+    if (/経常収支/.test(q)) return metricAns('経常収支比率', 'keijo', '%', y, null);
+    if (/公債費/.test(q)) return metricAns('実質公債費比率', 'koSaihi', '%', y, '実質公債費比率が18%以上になると、地方債の発行に総務大臣等の許可が必要になります。');
+    if (/実質収支|黒字|赤字/.test(q)) {
+      var jOut = [];
+      if (y && KESSAN[yearId(y)]) jOut.push(block('actual', KESSAN[yearId(y)].era + 'の実質収支は ' + amt(KESSAN[yearId(y)].jisshitsu) + ' の黒字です。', SRC.kessan));
+      jOut.push(block('actual', '実質収支の推移：' + table(['年度', '実質収支（決算）'], ['R4', 'R5', 'R6'].map(function (id) { var k = KESSAN[id]; return [k.era, amt(k.jisshitsu)]; })), SRC.kessan));
+      return jOut;
+    }
+    if (/人口|人数|何人/.test(q)) return ansJinko(q, y);
+    if (/歳出|支出|使った|使い道/.test(q)) return ansSaishutsu(q, y, series);
+
+    for (var i = 0; i < KOKU_SYN.length; i++) {
+      if (KOKU_SYN[i][1].test(q)) {
+        if (KOKU_SYN[i][0] === 'sonsai' && /残高/.test(q)) return ansDebt(q, y, series);
+        return ansKoku(KOKU_SYN[i][0], KOKU_SYN[i][2], q, y, series, mode);
+      }
+    }
+    if (/総額|予算|一般会計|歳入|規模|いくら/.test(q)) return ansTotal(q, y, series, mode);
+
+    return [block('miss',
+      'その質問には、収録データから直接お答えできませんでした。お答えできる範囲：' +
+      '<div class="qa-scope">・当初予算の歳入20款の金額（令和4〜8年度）／自主財源比率<br>' +
+      '・決算の歳入・歳出総額、実質収支、財政力指数、経常収支比率、実質公債費比率、地方債残高、基金残高（令和4〜6年度）<br>' +
+      '・ふるさと納税の受入実績（平成20〜令和7年度）／人口<br>' +
+      '例：「令和6年度の地方交付税は？」「村の借金の推移は？」「基金はいくら残ってる？」</div>', null)];
+  }
+
+  /* ---------- UI ---------- */
+  var input = document.getElementById('qaInput');
+  var ansBox = document.getElementById('qaAnswer');
+  var chipsHost = document.getElementById('qaChips');
+  var CHIPS = [
+    '令和7年度に実際に得たふるさと納税はいくら？',
+    'ふるさと納税の推移は？',
+    '令和8年度の予算総額は？',
+    '村の借金（地方債残高）はいくら？',
+    '基金（貯金）はいくら残ってる？',
+    '地方交付税はいくら？',
+    '自主財源の割合は？',
+    '村の財政は健全なの？'
+  ];
+  CHIPS.forEach(function (c) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.textContent = c;
+    b.addEventListener('click', function () { input.value = c; run(); });
+    chipsHost.appendChild(b);
+  });
+  function run() {
+    var q = input.value.trim();
+    if (!q) return;
+    var blocks = answer(q);
+    ansBox.innerHTML = '<div class="qa-q">Q. ' + q.replace(/</g, '&lt;') + '</div>' + blocks.join('');
+    ansBox.classList.add('show');
+  }
+  document.getElementById('qaForm').addEventListener('submit', function (e) { e.preventDefault(); run(); });
+})();
+</script>
+
+</body>
+</html>
